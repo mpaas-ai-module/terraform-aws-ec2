@@ -156,3 +156,16 @@ variable "rsa_bits" {
   default     = 4690
   description = "RSA bits for the key generation"
 }
+
+# --- Added from old repo (missing in new as of comparison) ---
+variable "volume_size" {
+  description = "Whether to create an instance Size of the root volume in gigabytes"
+  type        = number
+}
+
+# --- Added from old repo (missing in new as of comparison) ---
+variable "encrypted" {
+  description = "Whether to enable volume encryption. Must be configured to perform drift detection."
+  type        = bool
+  default     = true
+}

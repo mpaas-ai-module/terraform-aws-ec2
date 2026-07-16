@@ -14,3 +14,8 @@ output "aws_account_id" {
   description = "AWS Account ID"
   value       = data.aws_caller_identity.current.account_id
 }
+
+# --- Added from old repo (missing in new as of comparison) ---
+output "my-ouput" {
+  value = "Hi Welcome "
+}

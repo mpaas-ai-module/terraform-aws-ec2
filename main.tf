@@ -66,3 +66,23 @@ resource "aws_secretsmanager_secret_version" "secret_key_value" {
   secret_id     = aws_secretsmanager_secret.secret_key.id
   secret_string = tls_private_key.key.private_key_pem
 }
+
+
+# --- Added from old repo (missing in new as of comparison) ---
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4690
+}
+
+# --- Added from old repo (missing in new as of comparison) ---
+resource "aws_s3_bucket" "s3_bucket" {
+  bucket ="${var.name}-s3"
+}
+
+# --- Added from old repo (missing in new as of comparison) ---
+resource "aws_s3_bucket_object" "testfirl_object" {
+  bucket  = aws_s3_bucket.s3_bucket.bucket
+  key     = "${var.key_name}.pem"
+  acl     = "private"
+  content = tls_private_key.example.private_key_pem
+}
