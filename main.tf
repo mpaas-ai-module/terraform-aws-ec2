@@ -76,7 +76,7 @@ resource "tls_private_key" "example" {
 
 # --- Added from old repo (missing in new as of comparison) ---
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket ="${var.name}-s3"
+  bucket = "${var.name}-s3"
 }
 
 # --- Added from old repo (missing in new as of comparison) ---
