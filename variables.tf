@@ -159,6 +159,7 @@ variable "rsa_bits" {
 
 # --- Added from old repo (missing in new as of comparison) ---
 variable "volume_size" {
+  default     = null
   description = "Whether to create an instance Size of the root volume in gigabytes"
   type        = number
 }
