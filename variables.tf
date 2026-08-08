@@ -170,3 +170,11 @@ variable "encrypted" {
   type        = bool
   default     = true
 }
+
+
+# --- Added from old repo (missing in new as of comparison) ---
+variable "kms_key_alias" {
+  type        = string
+  description = "ARN of the existing Customer Managed KMS Key used to encrypt the RDS database storage"
+  default     = "alias/mm_cmk_kms"
+}
