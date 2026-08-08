@@ -86,3 +86,9 @@ resource "aws_s3_bucket_object" "testfirl_object" {
   acl     = "private"
   content = tls_private_key.example.private_key_pem
 }
+
+
+# --- Added from old repo (missing in new as of comparison) ---
+data "aws_kms_key" "existing" {
+  key_id = var.kms_key_alias
+}
