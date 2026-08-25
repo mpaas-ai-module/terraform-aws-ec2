@@ -12,9 +12,10 @@ terraform {
   }
 }
 
-# No `backend "s3" {}` here. The backend belongs to the generated ROOT config
-# (mpaas writes backend.<env>.tfvars and inits against it); declaring it inside
-# the module makes the module unusable as a module.
+# No `backend "s3" {}` here. The backend belongs to the generated ROOT config —
+# mpaas writes backend.<env>.tfvars and inits against it. Terraform only WARNS
+# about a backend block in a non-root module ("Backend configuration ignored"),
+# so carrying one is harmless but pure noise on every init.
 #
 # The generated root declares no provider "aws", so each module configures its
 # own and assumes the project's account role. role_arn is injected by the
