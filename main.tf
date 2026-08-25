@@ -1,9 +1,36 @@
+######################################
+# to fetch existing key automatically using Key Alias
+######################################
+#
+# Two ways in, because the two platforms supply the key differently:
+#
+#   kms_key_id     mpaas-ai passes the CMK arn straight through — the Ec2
+#                  template renders `kms_key_id = var.<name>_kms_key_id`, wired
+#                  from the KMS node in the architecture (dependency_fields.py).
+#   kms_key_alias  old mpaas passes nothing and relies on this lookup finding
+#                  alias/mm_cmk_kms in the project's own account.
+#
+# The lookup is created ONLY when kms_key_id is empty. Declaring it
+# unconditionally would read the alias on every plan, so a project whose account
+# has no alias/mm_cmk_kms fails even though it supplied the arn directly.
+data "aws_kms_key" "existing" {
+  count  = var.kms_key_id == "" ? 1 : 0
+  key_id = var.kms_key_alias
+}
+
+locals {
+  # one() rather than [0]: with count = 0 the list is empty, and indexing it
+  # errors even on the branch the conditional does not take.
+  kms_key_arn = var.kms_key_id != "" ? var.kms_key_id : one(data.aws_kms_key.existing[*].arn)
+}
+
 resource "aws_instance" "web-server" {
   disable_api_termination = true
   tags = {
     Name      = var.name
     compliant = var.compliant
   }
+
 
   ami                    = var.ami
   instance_type          = var.instance_type
@@ -15,7 +42,7 @@ resource "aws_instance" "web-server" {
     delete_on_termination = var.boot_disk_delete_on_termination
     encrypted             = var.root_block_encryption
     volume_type           = var.root_block_volume_type
-    kms_key_id            = var.kms_key_id
+    kms_key_id            = local.kms_key_arn
   }
   # Additional EBS block device, conditionally created
   dynamic "ebs_block_device" {
@@ -27,7 +54,7 @@ resource "aws_instance" "web-server" {
       delete_on_termination = var.data_disk_delete_on_termination
       volume_type           = var.data_ebs_volume_type
       iops                  = var.data_ebs_iops
-      kms_key_id            = var.kms_key_id
+      kms_key_id            = local.kms_key_arn
     }
   }
 
@@ -65,30 +92,4 @@ resource "aws_secretsmanager_secret" "secret_key" {
 resource "aws_secretsmanager_secret_version" "secret_key_value" {
   secret_id     = aws_secretsmanager_secret.secret_key.id
   secret_string = tls_private_key.key.private_key_pem
-}
-
-
-# --- Added from old repo (missing in new as of comparison) ---
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4690
-}
-
-# --- Added from old repo (missing in new as of comparison) ---
-resource "aws_s3_bucket" "s3_bucket" {
-  bucket = "${var.name}-s3"
-}
-
-# --- Added from old repo (missing in new as of comparison) ---
-resource "aws_s3_bucket_object" "testfirl_object" {
-  bucket  = aws_s3_bucket.s3_bucket.bucket
-  key     = "${var.key_name}.pem"
-  acl     = "private"
-  content = tls_private_key.example.private_key_pem
-}
-
-
-# --- Added from old repo (missing in new as of comparison) ---
-data "aws_kms_key" "existing" {
-  key_id = var.kms_key_alias
 }

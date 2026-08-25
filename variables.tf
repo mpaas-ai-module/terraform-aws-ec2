@@ -141,11 +141,22 @@ variable "data_ebs_iops" {
   type        = number
   default     = 0
 }
-variable "kms_key_id" {
-  description = "kms key for encrption and decription"
+variable "kms_key_alias" {
   type        = string
-
+  description = "ARN of the existing Customer Managed KMS Key used to encrypt the RDS database storage"
+  default     = "alias/mm_cmk_kms"
 }
+
+# Optional on purpose. mpaas-ai wires the CMK arn in from the KMS node and passes
+# it here; old mpaas passes nothing and falls back to the kms_key_alias lookup
+# above. Making this REQUIRED (as mpaas-ai-module@v1.0.3 did) breaks every caller
+# that still relies on the alias.
+variable "kms_key_id" {
+  type        = string
+  description = "ARN of the CMK to encrypt the root and data volumes with. When empty, the key is looked up by kms_key_alias instead."
+  default     = ""
+}
+
 variable "key_algorithm" {
   type        = string
   default     = "RSA"
@@ -155,26 +166,4 @@ variable "rsa_bits" {
   type        = number
   default     = 4690
   description = "RSA bits for the key generation"
-}
-
-# --- Added from old repo (missing in new as of comparison) ---
-variable "volume_size" {
-  default     = null
-  description = "Whether to create an instance Size of the root volume in gigabytes"
-  type        = number
-}
-
-# --- Added from old repo (missing in new as of comparison) ---
-variable "encrypted" {
-  description = "Whether to enable volume encryption. Must be configured to perform drift detection."
-  type        = bool
-  default     = true
-}
-
-
-# --- Added from old repo (missing in new as of comparison) ---
-variable "kms_key_alias" {
-  type        = string
-  description = "ARN of the existing Customer Managed KMS Key used to encrypt the RDS database storage"
-  default     = "alias/mm_cmk_kms"
 }
