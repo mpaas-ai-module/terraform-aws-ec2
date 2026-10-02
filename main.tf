@@ -1,27 +1,9 @@
 ######################################
 # to fetch existing key automatically using Key Alias
 ######################################
-#
-# Two ways in, because the two platforms supply the key differently:
-#
-#   kms_key_id     mpaas-ai passes the CMK arn straight through — the Ec2
-#                  template renders `kms_key_id = var.<name>_kms_key_id`, wired
-#                  from the KMS node in the architecture (dependency_fields.py).
-#   kms_key_alias  old mpaas passes nothing and relies on this lookup finding
-#                  alias/mm_cmk_kms in the project's own account.
-#
-# The lookup is created ONLY when kms_key_id is empty. Declaring it
-# unconditionally would read the alias on every plan, so a project whose account
-# has no alias/mm_cmk_kms fails even though it supplied the arn directly.
-data "aws_kms_key" "existing" {
-  count  = var.kms_key_id == "" ? 1 : 0
-  key_id = var.kms_key_alias
-}
 
-locals {
-  # one() rather than [0]: with count = 0 the list is empty, and indexing it
-  # errors even on the branch the conditional does not take.
-  kms_key_arn = var.kms_key_id != "" ? var.kms_key_id : one(data.aws_kms_key.existing[*].arn)
+data "aws_kms_key" "existing" {
+  key_id = var.kms_key_alias
 }
 
 resource "aws_instance" "web-server" {
@@ -42,7 +24,7 @@ resource "aws_instance" "web-server" {
     delete_on_termination = var.boot_disk_delete_on_termination
     encrypted             = var.root_block_encryption
     volume_type           = var.root_block_volume_type
-    kms_key_id            = local.kms_key_arn
+    kms_key_id            = data.aws_kms_key.existing.arn
   }
   # Additional EBS block device, conditionally created
   dynamic "ebs_block_device" {
@@ -54,7 +36,7 @@ resource "aws_instance" "web-server" {
       delete_on_termination = var.data_disk_delete_on_termination
       volume_type           = var.data_ebs_volume_type
       iops                  = var.data_ebs_iops
-      kms_key_id            = local.kms_key_arn
+      kms_key_id            = data.aws_kms_key.existing.arn
     }
   }
 

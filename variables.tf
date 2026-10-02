@@ -147,16 +147,6 @@ variable "kms_key_alias" {
   default     = "alias/mm_cmk_kms"
 }
 
-# Optional on purpose. mpaas-ai wires the CMK arn in from the KMS node and passes
-# it here; old mpaas passes nothing and falls back to the kms_key_alias lookup
-# above. Making this REQUIRED (as mpaas-ai-module@v1.0.3 did) breaks every caller
-# that still relies on the alias.
-variable "kms_key_id" {
-  type        = string
-  description = "ARN of the CMK to encrypt the root and data volumes with. When empty, the key is looked up by kms_key_alias instead."
-  default     = ""
-}
-
 variable "key_algorithm" {
   type        = string
   default     = "RSA"

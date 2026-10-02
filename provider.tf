@@ -1,26 +1,16 @@
 terraform {
-  required_version = ">= 1.3"
-
+  required_version = ">= 0.13" #Recommended CLI version ">= 1.11.4"
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      # >= 5.46.0, < 6.0.0 — every mpaas AWS module shares this constraint so a
-      # multi-module root can resolve. Deliberately bounded: the next major is
-      # unvalidated against these modules.
-      version = "~> 5.46"
+      source  = "hashicorp/aws"
+      version = "~> 5.46.0" #Please refer official terraform provider documentation before updating provider version 
     }
   }
+  backend "s3" {}
 }
 
-# No `backend "s3" {}` here. The backend belongs to the generated ROOT config —
-# mpaas writes backend.<env>.tfvars and inits against it. Terraform only WARNS
-# about a backend block in a non-root module ("Backend configuration ignored"),
-# so carrying one is harmless but pure noise on every init.
-#
-# The generated root declares no provider "aws", so each module configures its
-# own and assumes the project's account role. role_arn is injected by the
-# platform from the AFT-created account id (never by the AI).
 provider "aws" {
+  # Configuration options 
   assume_role {
     role_arn = var.role_arn
   }
